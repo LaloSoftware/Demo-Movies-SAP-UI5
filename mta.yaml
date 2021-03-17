@@ -1,0 +1,50 @@
+_schema-version: "3.2"
+ID: movies
+version: 0.0.1
+modules:
+- name: movies-approuter
+  type: approuter.nodejs
+  path: movies-approuter
+  requires:
+  - name: movies_html_repo_runtime
+  parameters:
+    disk-quota: 256M
+    memory: 256M
+- name: movies_ui_deployer
+  type: com.sap.application.content
+  path: .
+  requires:
+  - name: movies_html_repo_host
+    parameters:
+      content-target: true
+  build-parameters:
+    build-result: resources
+    requires:
+    - artifacts:
+      - App-content.zip
+      name: App
+      target-path: resources/
+- name: App
+  type: html5
+  path: App
+  build-parameters:
+    builder: custom
+    commands:
+    - npm run build
+    supported-platforms: []
+resources:
+- name: movies_html_repo_runtime
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-runtime
+- name: movies_html_repo_host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-plan: app-host
+build-parameters:
+  before-all:
+  - builder: custom
+    commands:
+    - npm install
